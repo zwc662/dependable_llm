@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "dependent"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <zwc662@gmail.com>"]
+readme = "README.md"
+packages = [{ include = "./third_party" }, { include = "./local_datasets"}]
+
+[tool.poetry.dependencies]
+python = ">=3.9, <3.12"
+torch = {version = "2.0.1", source = "pytorch-cu118"}
+torchvision = {version = "0.15.2", source = "pytorch-cu118"}
+tensorboard = "^2.13.0"
+jupyter = "^1.0.0"
+ipykernel = "^6.25.0"
+peft = {git = "https://github.com/huggingface/peft.git"}
+transformers = {extras = ["torch"], version = "^4.31.0"}
+click = "8.0.3"
+datasets = "2.8.0"
+deepspeed = "0.10.0"
+accelerate = {git = "https://github.com/huggingface/accelerate.git"}
+watchdog = "2.1.9"
+nltk = "3.6.5"
+rapidfuzz = "1.8.3"
+sqlparse = "0.4.2"
+stanza = "1.3.0"
+tenacity = "8.0.1"
+protobuf = "3.20.0"
+einops = "^0.6.1"
+scipy = "1.10.1"
+bitsandbytes = "0.39.1"
+safetensors = "^0.3.1"
+boto3 = "1.15.0"
+xformers = "^0.0.20"
+trlx = {git = "https://github.com/CarperAI/trlx/", optional = true}
+
+[tool.poetry.extras]
+rlhf = ["trlx"] 
+
+[[tool.poetry.source]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+priority= "explicit"
+
+[tool.pytest.ini_options]
+pythonpath = "dependent"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+
+ 
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
