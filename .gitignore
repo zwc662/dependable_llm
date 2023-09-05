@@ -1,2 +1,8 @@
 ./dependent/examples/transformer_cache
 ./dependent/examples/transformer_cache/*/*
+*.pyc
+*/__pycache__
+*/__pycache__/*
+*.DS_Store
+dependent/text2sql/__pycache__/__init__.cpython-39.pyc
+dependent/text2sql/dataset_adapter/__pycache__/__init__.cpython-39.pyc

@@ -1,7 +1,7 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Union, Literal, Callable, ClassVar
-from pydantic import BaseModel, Field, root_validator
+from pydantic import BaseModel, Extra, Field, root_validator
 
 import yaml
 import json
@@ -138,7 +138,27 @@ class AlgorithmConfig(BaseConfig):
                 setattr(self, k, v)
 
 class PipelineConfig(BaseConfig):
-    task: Literal["text2text", "text_generation"] = "text_generation"
+    task: Literal[
+        'audio-classification', 
+        'automatic-speech-recognition', 
+        'conversational', 
+        'depth-estimation', 
+        'document-question-answering', 
+        'feature-extraction', 
+        'fill-mask', 
+        'image-classification', 
+        'image-segmentation', 
+        'image-to-text', 'mask-generation', 
+        'ner', 'object-detection', 'question-answering', 
+        'sentiment-analysis', 'summarization', 'table-question-answering', 
+        'text-classification', 'text-generation', 'text-to-audio', 
+        'text-to-speech', 'text2text-generation', 'token-classification', 
+        'translation', 'video-classification', 'visual-question-answering', 
+        'vqa', 'zero-shot-audio-classification', 'zero-shot-classification', 
+        'zero-shot-image-classification', 'zero-shot-object-detection', 
+        'translation_XX_to_YY'
+        ] = "text-generation"
+    
     use_cache: bool = True
     device_map: str ="auto"
     do_sample: bool =True
@@ -219,6 +239,8 @@ class LLMConfig(BaseConfig):
     quantization: Optional[QuantizationConfig] = None
     lora: Optional[LORAConfig] = None
     
+    class Config:
+        extra = Extra.allow # or 'allow' str
    
     @classmethod
     def from_dict(cls, config: Dict):

@@ -1,5 +1,5 @@
 from distutils.util import split_quoted
-from typing import Optional, List, Dict, Callable, Any
+from typing import Optional, List, Dict, Callable, Any, Union
 from functools import partial
 from dataclasses import dataclass, field
 from datasets.dataset_dict import DatasetDict
@@ -35,7 +35,7 @@ class DataSplit(BaseDataSplit):
     @classmethod
     def split_dataset(
         cls,
-        dataset: Dataset,
+        dataset: Union[Dataset, List[Dataset]],
         num_split: int, 
         ) -> BaseDataSplit: 
         data_split = None

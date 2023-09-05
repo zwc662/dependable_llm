@@ -7,13 +7,16 @@ import torch
 import logging
 logger = logging.getLogger(__name__)
 
+from golden_eval_examples import examples
+
 
 algorithm_config = {
     'task': 'SFT'
 } 
 model_config = {
-    'id': 'gpt2', #"vilsonrodrigues/falcon-7b-instruct-sharded",
-    'model_class': 'GPT2LMHeadModel', #'AutoModelForCausalLM',
+    'id': 'codellama/CodeLlama-7b-hf', 
+    #'gpt2', #"vilsonrodrigues/falcon-7b-instruct-sharded",
+    'model_class': 'AutoModelForCausalLM', #'GPT2LMHeadModel', #'AutoModelForCausalLM',
     "torch_dtype": torch.bfloat16,
     'device_map': 'auto',
     "trust_remote_code": True,
@@ -34,8 +37,10 @@ lora_config = {
 }
 
 tokenizer_config = {
-    'id': 'gpt2', #"vilsonrodrigues/falcon-7b-instruct-sharded",
-    'tokenizer_class': 'GPT2Tokenizer',
+    'id': "codellama/CodeLlama-7b-hf", 
+    #'gpt2', #"vilsonrodrigues/falcon-7b-instruct-sharded",
+    'tokenizer_class': 'AutoTokenizer',
+    #'GPT2Tokenizer',
     'padding_side': 'left',
     'padding_token': 'eos_token',
     'eos_token': 'eos_token',
@@ -62,7 +67,7 @@ train_config = {
 data_config = {
     'dataset': ['spider'],
     'num_workders': 8, 
-    'num_splits': 5,
+    'num_splits': 1,
     'columns': ['input_ids', 'attention_mask', 'label'],
     'type': torch
 }
@@ -87,9 +92,12 @@ text2sql_config = DPConfig.from_dict(dependent_config)
 agent = Text2SQL.from_config(text2sql_config)
 
 for i in tqdm.tqdm(range(1, agent.config.train.epochs)):
+    for example in examples:
+        print(agent.pipeline("example"))
     train_info = agent.run(episodes = 1)
     if i % log_interval == 0:
         for k, v in train_info.items():
             logger.info(f'training/{k}', v, i)
 
- 
+for example in examples:
+    print(agent.pipeline("example"))

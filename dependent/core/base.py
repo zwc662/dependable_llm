@@ -36,14 +36,14 @@ class dependentBase(ABC):
             model: Any = ...,
             tokenizer: Callable = ...,
             pipeline: Callable = ...,
-            train: Callable = ...,
+            trainer: Callable = ...,
             data_splits: DataSplit = ...
     ):
         self.config = config
         self.model = model
         self.tokenizer = tokenizer
         self.pipeline = pipeline
-        self.train = train
+        self.trainer = trainer
         self.data_splits = data_splits
     
 
@@ -52,22 +52,22 @@ class dependentBase(ABC):
     def from_config(cls, config: DPConfig):
         model = cls.get_model(config)
         tokenizer = cls.get_tokenizer(config)
-        #pipeline = cls.get_pipeline(model, tokenizer, config)
-        train = cls.get_trainer(tokenizer, config)
+        pipeline = cls.get_pipeline(model, tokenizer, config)
+        trainer = cls.get_trainer(tokenizer, config)
         data_splits = cls.get_dataset_splits(tokenizer, config)
         return cls(
             config = config, 
             model = model, 
             tokenizer = tokenizer, 
             pipeline = pipeline, 
-            train = train, 
+            trainer = trainer, 
             data_splits = data_splits
             )
     
     @classmethod
     def get_pipeline(cls, model: Callable, tokenizer: Callable, config: DPConfig):
-        config.llm.pipeline.eos_token_id = getattr(tokenizer, config.llm.eos_token_id),
-        config.llm.pipeline.pad_token_id = getattr(tokenizer, config.llm.eos_token_id),
+        #config.llm.pipeline.eos_token_id = getattr(tokenizer, config.llm.eos_token_id),
+        #config.llm.pipeline.pad_token_id = getattr(tokenizer, config.llm.eos_token_id),
         return pipeline(
                 model=model,
                 tokenizer=tokenizer,
@@ -81,8 +81,7 @@ class dependentBase(ABC):
                 data_collator = cls.get_collator(tokenizer, config),
                 config = config.train
                 )
-            return trainer.train
- 
+            return trainer
    
     @classmethod
     def get_model(cls, config: DPConfig):

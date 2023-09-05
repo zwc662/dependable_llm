@@ -9,7 +9,7 @@ from .bridge_content_encoder import get_database_matches
 
 import sys, os
 sys.path.append(os.path.dirname(os.getcwd()))
-from dependent.text2sql.dataset_adapter.preprocess.choose_dataset import preprocess_by_dataset
+from legion.text2sql.dataset_adapter.preprocess.choose_dataset import preprocess_by_dataset
 import re
 import random
 

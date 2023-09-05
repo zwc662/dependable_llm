@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Optional, Set, Union, Literal, Callable
 
 
-from dependent.core.utils.register import register
-from dependent.core.trainers import BaseTrainer
+from legion.core.utils.register import register
+from legion.core.trainers import BaseTrainer
 
 import transformers
 from torch.utils.data import Dataset  

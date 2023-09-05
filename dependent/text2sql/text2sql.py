@@ -1,5 +1,5 @@
 
-from typing import Any, Dict, List, Optional, Set, Union, Literal, ClassVar
+from typing import Any, Dict, List, Optional, Set, Union, Literal, ClassVar, Callable
 from pydantic import BaseModel, Field, validator
 from functools import partial
 
@@ -29,6 +29,11 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, Pe
 import torch
 import torch.nn as nn
 
+import mlflow
+
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Text2SQL(dependentBase):
     def __init__(self, *args, **kwargs):
@@ -38,6 +43,7 @@ class Text2SQL(dependentBase):
     @classmethod    
     def get_dataset_splits(cls, tokenizer: Callable, config: DPConfig): 
         train_splits = None
+        datasets = []
         for dataset_name in config.data.dataset:
             data_args = DataArguments(
                 preprocessing_num_workers = config.data.num_workers,  
@@ -74,7 +80,7 @@ class Text2SQL(dependentBase):
         data_collator=DataCollator(
             tokenizer = tokenizer, 
             max_length = config.llm.tokenizer.max_length,
-            label_pad_token_id = getattr(tokenizer, config.llm.pipeline.pad_token_id)
+            label_pad_token_id = int(config.llm.pipeline.pad_token_id)
             )
         return data_collator
         
@@ -86,6 +92,18 @@ class Text2SQL(dependentBase):
         tokenizer.padding_side = config.llm.tokenizer.padding_side
         tokenizer.pad_token = getattr(tokenizer, config.llm.tokenizer.padding_token)
         tokenizer.eos_token = config.llm.tokenizer.eos_token
+
+        if isinstance(config.llm.pipeline.eos_token_id, str):
+            config.llm.pipeline.eos_token_id = getattr(tokenizer, config.llm.pipeline.eos_token_id)
+       
+        #print(f"eos_token_id: {config.llm.pipeline.eos_token_id}")
+
+
+        if isinstance(config.llm.pipeline.pad_token_id, str):
+            config.llm.pipeline.pad_token_id = getattr(tokenizer, config.llm.pipeline.pad_token_id)
+       
+        #print(f"pad_token_id: {config.llm.pipeline.pad_token_id}")
+
         return tokenizer
 
     def run(self, episodes: int = 1, final_train: bool = True):
@@ -103,34 +121,36 @@ class Text2SQL(dependentBase):
             for epoch in range(1, episodes + 1):
                 best_score = None
                 best_exps = None
-                 
-                suffix_split = self.data_splits
-                prefix_split = None
-                for _ in range(1, self.config.data.num_splits):
-                    validation_set = suffix_split.head
-                    suffix_split = suffix_split.tail
-                    if prefix_split is None:
-                        train_set = suffix_split.compose()
-                    else:
-                        train_set = DataSplit.concatenate(prefix_split, suffix_split).compose()
-                    self.data_splits = None
-    
-                    #self.logger.epoch_info("Run ID: %s, Epoch: %s \n" % (run.info.run_uuid, epoch))
-                    train_info = self.train(train_set, self.model)
-                    print(train_info)
-                    #for k, v in train_info.items():
-                    #    mlflow.log_metric(k, v, step = epoch)
-                    #validation_info = self.learner.evaluate(self.logger, validation_set, metrics_fn)
-                    #for k, v in validation_info.items():
-                    #    mlflow.log_metric(k, v, step = epoch)
-                    
-                    #score = validation_info.get(self.config.algorithm.metrics[0])
-                    #if best_score is None or best_score < score:
-                    #    best_score, best_exps, best_validation_info, best_dataset = score, exps, validation_info, dataset
-            #if final_train:
-                #final_info = self.learner.train(self.logger, best_dataset, best_loss_fn, self.optimizer)
-                #for k, v in final_info.items():
-                #    mlflow.log_metric(k, v, step = self.epochs + 1)
+                
+                if self.config.data.num_splits == 1:
+                    train_set = self.data_splits.head
+                    train_info = self.trainer.train(train_set, self.model)
+                    logger.info(train_info)
+                else:
+                    train_split = self.data_splits.tail
+                    test_set = self.data_splits.head
+                    for _ in range(self.config.data.num_splits):
+                        train_set = train_split.compose()
+                        #self.logger.epoch_info("Run ID: %s, Epoch: %s \n" % (run.info.run_uuid, epoch))
+                        train_info = self.trainer.train(train_set, self.model)
+                        #logger.info(train_info)
+
+                        test_set = train_split.head
+                        train_split = train_split.tail.append(test_set)
+
+                        #for k, v in train_info.items():
+                        #    mlflow.log_metric(k, v, step = epoch)
+                        #validation_info = self.learner.evaluate(self.logger, validation_set, metrics_fn)
+                        #for k, v in validation_info.items():
+                        #    mlflow.log_metric(k, v, step = epoch)
+                        
+                        #score = validation_info.get(self.config.algorithm.metrics[0])
+                        #if best_score is None or best_score < score:
+                        #    best_score, best_exps, best_validation_info, best_dataset = score, exps, validation_info, dataset
+                    #if final_train:
+                        #final_info = self.learner.train(self.logger, best_dataset, best_loss_fn, self.optimizer)
+                        #for k, v in final_info.items():
+                        #    mlflow.log_metric(k, v, step = self.epochs + 1)
             #mlflow.end_run()
             #mlflow.log_artifacts(self.result_dir, artifact_path="configure_events")
 
