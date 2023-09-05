@@ -8,8 +8,8 @@ packages = [{ include = "./third_party" }, { include = "./local_datasets"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9, <3.12"
-torch = {version = "2.0.1", source = "pytorch-cu118"}
-torchvision = {version = "0.15.2", source = "pytorch-cu118"}
+torch = {version = "2.0.1+cu118", source = "pytorch-cu118"}
+torchvision = {version = "0.15.2+cu118", source = "pytorch-cu118"}
 tensorboard = "^2.13.0"
 jupyter = "^1.0.0"
 ipykernel = "^6.25.0"
@@ -39,7 +39,7 @@ rlhf = ["trlx"]
 
 [[tool.poetry.source]]
 name = "pytorch-cu118"
-url = "https://download.pytorch.org/whl/cu118"
+url = "https://download.pytorch.org/whl/torch_stable.html"
 priority= "explicit"
 
 [tool.pytest.ini_options]
